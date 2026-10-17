@@ -87,6 +87,54 @@ class ApiClient {
     return [];
   }
 
+  async fetchDatasetImages(offset = 0, limit = 10) {
+    if (this.isLive) {
+      try {
+        const res = await fetch(`${this.baseUrl}/api/dataset-images?offset=${offset}&limit=${limit}`);
+        if (res.ok) {
+          return await res.json();
+        }
+      } catch (err) {
+        console.warn('Failed to fetch dataset images from backend:', err);
+      }
+    }
+
+    // Static fallback from dataset_catalog.json
+    try {
+      const res = await fetch('data/dataset_catalog.json');
+      if (res.ok) {
+        const data = await res.json();
+        const allImgs = data.images || [];
+        const batch = allImgs.slice(offset, offset + limit);
+        return {
+          total: data.total || allImgs.length,
+          offset,
+          limit,
+          has_more: offset + limit < (data.total || allImgs.length),
+          images: batch,
+        };
+      }
+    } catch (err) {
+      console.error('Failed to load dataset_catalog.json fallback:', err);
+    }
+
+    // Default to samples if dataset_catalog fails
+    const samples = await this.fetchSamples();
+    const batch = samples.slice(offset, offset + limit).map((s) => ({
+      id: s.id,
+      filename: s.file.replace('samples/', ''),
+      url: s.file,
+      title: s.title,
+    }));
+    return {
+      total: samples.length,
+      offset,
+      limit,
+      has_more: offset + limit < samples.length,
+      images: batch,
+    };
+  }
+
   async detect({ model, conf, iou, sampleId, imageBase64 }) {
     if (this.isLive) {
       if (this.activeAbortController) {
@@ -158,7 +206,7 @@ class ApiClient {
       count: 0,
       detections: [],
       latency_ms: 0,
-      notice: 'Start python3 webapp/server.py for live custom image inference.',
+      notice: 'Start python3 webapp/main.py for live custom image inference.',
       speed: { preprocess_ms: 0, inference_ms: 0, postprocess_ms: 0 },
     };
   }

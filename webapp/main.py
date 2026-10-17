@@ -11,10 +11,10 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-# Set working directory to project root or webapp directory
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = SCRIPT_DIR.parent
 WEBAPP_DIR = SCRIPT_DIR
+DATASET_DIR = (PROJECT_ROOT / "dataset" / "test" / "images").resolve()
 
 CLASS_NAMES = {0: "D00", 1: "D10", 2: "D20", 3: "D40"}
 CLASS_LABELS = {
@@ -255,6 +255,10 @@ class RequestHandler(SimpleHTTPRequestHandler):
             self.handle_api_samples()
         elif path == "/api/benchmark":
             self.handle_api_benchmark()
+        elif path == "/api/dataset-images":
+            self.handle_api_dataset_images(parsed)
+        elif path == "/api/dataset-image":
+            self.handle_api_dataset_image(parsed)
         else:
             super().do_GET()
 
@@ -301,6 +305,76 @@ class RequestHandler(SimpleHTTPRequestHandler):
             self.send_json(data)
         else:
             self.send_json([])
+
+    def handle_api_dataset_images(self, parsed):
+        query = parse_qs(parsed.query)
+        try:
+            offset = int(query.get("offset", [0])[0])
+            limit = int(query.get("limit", [10])[0])
+        except (ValueError, IndexError):
+            offset = 0
+            limit = 10
+
+        offset = max(0, offset)
+        limit = max(1, min(limit, 50))
+
+        all_files = []
+        if DATASET_DIR.exists():
+            all_files = sorted([f.name for f in DATASET_DIR.glob("*.jpg")])
+
+        total = len(all_files)
+        batch = all_files[offset : offset + limit]
+
+        images = []
+        for f_name in batch:
+            images.append({
+                "id": Path(f_name).stem,
+                "filename": f_name,
+                "url": f"/api/dataset-image?file={f_name}",
+                "title": Path(f_name).stem.replace("_", " "),
+            })
+
+        response = {
+            "total": total,
+            "offset": offset,
+            "limit": limit,
+            "has_more": (offset + limit) < total,
+            "images": images,
+        }
+        self.send_json(response)
+
+    def handle_api_dataset_image(self, parsed):
+        query = parse_qs(parsed.query)
+        file_param = query.get("file", [""])[0]
+        if not file_param or "/" in file_param or "\\" in file_param or ".." in file_param:
+            self.send_error(HTTPStatus.BAD_REQUEST, "Invalid file parameter")
+            return
+
+        safe_name = Path(file_param).name
+        target_path = None
+        cand_dataset = (DATASET_DIR / safe_name).resolve()
+        if cand_dataset.is_relative_to(DATASET_DIR) and cand_dataset.exists():
+            target_path = cand_dataset
+        else:
+            cand_samples = (WEBAPP_DIR / "samples" / safe_name).resolve()
+            if cand_samples.is_relative_to(WEBAPP_DIR / "samples") and cand_samples.exists():
+                target_path = cand_samples
+
+        if not target_path:
+            self.send_error(HTTPStatus.NOT_FOUND, "Image not found")
+            return
+
+        try:
+            with open(target_path, "rb") as f:
+                img_bytes = f.read()
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "image/jpeg")
+            self.send_header("Content-Length", str(len(img_bytes)))
+            self.send_header("Cache-Control", "public, max-age=86400")
+            self.end_headers()
+            self.wfile.write(img_bytes)
+        except Exception as e:
+            self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, f"Error reading image: {e}")
 
     def handle_api_detect(self):
         content_type = self.headers.get("Content-Type", "")
@@ -367,14 +441,20 @@ class RequestHandler(SimpleHTTPRequestHandler):
             self.send_json({"error": f"Unrecognized or forbidden model: {model_name}"}, HTTPStatus.BAD_REQUEST)
             return
 
-        # Safe sample_id handling (strictly alphanumeric/underscore inside webapp/samples)
+        # Safe sample_id handling (resolves from webapp/samples or dataset directory)
         if not image_bytes and sample_id:
             safe_name = Path(sample_id).name
-            if not safe_name.endswith(".jpg"):
+            if not safe_name.endswith((".jpg", ".png", ".jpeg")):
                 safe_name = f"{safe_name}.jpg"
-            sample_path = (WEBAPP_DIR / "samples" / safe_name).resolve()
-            if sample_path.is_relative_to(WEBAPP_DIR / "samples") and sample_path.exists():
-                with open(sample_path, "rb") as f:
+
+            cand_samples = (WEBAPP_DIR / "samples" / safe_name).resolve()
+            cand_dataset = (DATASET_DIR / safe_name).resolve()
+
+            if cand_samples.is_relative_to(WEBAPP_DIR / "samples") and cand_samples.exists():
+                with open(cand_samples, "rb") as f:
+                    image_bytes = f.read()
+            elif cand_dataset.is_relative_to(DATASET_DIR) and cand_dataset.exists():
+                with open(cand_dataset, "rb") as f:
                     image_bytes = f.read()
 
         if not image_bytes:

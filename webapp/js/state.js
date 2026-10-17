@@ -23,6 +23,11 @@ class State {
       activeFilter: 'all',
       zoom: 1.0,
       pan: { x: 0, y: 0 },
+      activeView: 'studio',
+      datasetImages: [],
+      datasetOffset: 0,
+      datasetTotal: 0,
+      isLoadingMore: false,
     };
 
     this._listeners = new Map();

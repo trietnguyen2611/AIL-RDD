@@ -1,6 +1,7 @@
 /**
  * AIL-RDD Main Application Coordinator
- * Binds UI, State, Canvas, API, and Telemetry.
+ * Coordinates Sidebar Navigation, Model Switcher, 5-Column Dataset Gallery,
+ * High-DPI Canvas Viewport, and Live Telemetry.
  * Strictly zero emojis.
  */
 
@@ -8,7 +9,6 @@ import { state } from './state.js';
 import { api } from './api.js';
 import { DetectionCanvas } from './canvas.js';
 import { BenchmarkVisualizer } from './benchmark.js';
-import { initScrollEffects } from './scroll.js';
 
 class App {
   constructor() {
@@ -16,6 +16,7 @@ class App {
     this.benchmarkVisualizer = null;
     this.showDetections = true;
     this._toastTimer = null;
+    this.BATCH_SIZE = 10;
   }
 
   async init() {
@@ -30,28 +31,26 @@ class App {
     const tableEl = document.getElementById('benchmarkTableContainer');
     this.benchmarkVisualizer = new BenchmarkVisualizer(cardsEl, tableEl);
 
-    // 3. Initialize Scroll Animations
-    initScrollEffects();
-
-    // 4. Bind UI Event Listeners
+    // 3. Bind UI Events
+    this._bindViewSwitcher();
     this._bindModelSwitcher();
     this._bindSliders();
     this._bindControls();
     this._bindDropzone();
+    this._bindDatasetPagination();
     this._bindStateSubscribers();
 
-    // 5. Check Backend Status & Load Initial Data
+    // 4. Check Backend Status & Load Initial Models & Benchmark
     await this._loadBackendAndData();
 
-    // 6. Load First Sample Image
-    this._selectInitialSample();
+    // 5. Load Initial Batch of 10 Dataset Images
+    await this._loadDatasetBatch(true);
   }
 
   async _loadBackendAndData() {
     const status = await api.checkStatus();
     state.set('isBackendLive', status.isLive);
 
-    const statusEl = document.getElementById('backendStatusBadge');
     const statusDot = document.getElementById('backendStatusDot');
     const statusText = document.getElementById('backendStatusText');
 
@@ -67,16 +66,37 @@ class App {
     const models = await api.fetchModels();
     state.set('models', models);
     this.benchmarkVisualizer.render(models);
+  }
 
-    // Load samples
-    const samples = await api.fetchSamples();
-    state.set('samples', samples);
-    this._renderSampleCarousel(samples);
+  _bindViewSwitcher() {
+    const navBtns = document.querySelectorAll('.sidebar-nav-btn');
+    navBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const viewId = btn.getAttribute('data-view');
+        if (!viewId) return;
+
+        navBtns.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        document.querySelectorAll('.view-pane').forEach((pane) => {
+          pane.classList.remove('active');
+        });
+
+        const targetPane = document.getElementById(`view${viewId.charAt(0).toUpperCase() + viewId.slice(1)}`);
+        targetPane?.classList.add('active');
+
+        state.set('activeView', viewId);
+
+        if (viewId === 'studio') {
+          setTimeout(() => this.canvasEngine.resize(), 50);
+        }
+      });
+    });
   }
 
   _bindModelSwitcher() {
-    const tabBtns = document.querySelectorAll('.model-tab-btn');
-    tabBtns.forEach((btn) => {
+    const modelBtns = document.querySelectorAll('.sidebar-model-btn');
+    modelBtns.forEach((btn) => {
       btn.addEventListener('click', () => {
         const modelId = btn.getAttribute('data-model');
         if (modelId) {
@@ -120,7 +140,7 @@ class App {
   }
 
   _bindControls() {
-    // Reset View Button
+    // Reset View
     const btnResetView = document.getElementById('btnResetView');
     btnResetView?.addEventListener('click', () => {
       this.canvasEngine.resetTransform();
@@ -135,7 +155,7 @@ class App {
       this.canvasEngine.setDetections(this.showDetections ? activeDets : []);
     });
 
-    // Upload Button & File Input
+    // Upload Button
     const fileInput = document.getElementById('fileInput');
     const btnUpload = document.getElementById('btnUpload');
 
@@ -151,7 +171,7 @@ class App {
       this._triggerInference();
     });
 
-    // Damage class filters in sidebar
+    // Damage Class Filters in Telemetry
     document.querySelectorAll('.damage-item').forEach((item) => {
       item.addEventListener('click', () => {
         const cls = item.getAttribute('data-class');
@@ -190,10 +210,208 @@ class App {
     });
   }
 
+  _bindDatasetPagination() {
+    const btnLoadMore = document.getElementById('btnLoadMore');
+    btnLoadMore?.addEventListener('click', async () => {
+      if (state.get('isLoadingMore')) return;
+      await this._loadDatasetBatch(false);
+    });
+  }
+
+  async _loadDatasetBatch(isInitial = false) {
+    state.set('isLoadingMore', true);
+    const btnLoadMore = document.getElementById('btnLoadMore');
+    if (btnLoadMore) {
+      btnLoadMore.disabled = true;
+      btnLoadMore.querySelector('span').textContent = 'Đang tải...';
+    }
+
+    const currentOffset = isInitial ? 0 : state.get('datasetOffset');
+    try {
+      const res = await api.fetchDatasetImages(currentOffset, this.BATCH_SIZE);
+      const incoming = res.images || [];
+      const total = res.total || 3543;
+
+      let allImages = [];
+      if (isInitial) {
+        allImages = incoming;
+      } else {
+        const existing = state.get('datasetImages') || [];
+        allImages = [...existing, ...incoming];
+      }
+
+      state.set('datasetImages', allImages);
+      state.set('datasetOffset', currentOffset + incoming.length);
+      state.set('datasetTotal', total);
+
+      // Render 5-column grid
+      this._renderDatasetGrid(allImages, incoming, isInitial);
+
+      // Update counter
+      const counterEl = document.getElementById('datasetCounter');
+      if (counterEl) {
+        counterEl.textContent = `Showing ${allImages.length} of ${total.toLocaleString()} images`;
+      }
+
+      // Check if more available
+      if (btnLoadMore) {
+        if (!res.has_more || allImages.length >= total) {
+          btnLoadMore.style.display = 'none';
+        } else {
+          btnLoadMore.style.display = 'flex';
+          btnLoadMore.disabled = false;
+          btnLoadMore.querySelector('span').textContent = 'Tải thêm (+10)';
+        }
+      }
+
+      // If initial, select the first image
+      if (isInitial && allImages.length > 0) {
+        this._selectDatasetImage(allImages[0]);
+      }
+    } catch (err) {
+      console.error('Failed to load dataset batch:', err);
+      if (btnLoadMore) {
+        btnLoadMore.disabled = false;
+        btnLoadMore.querySelector('span').textContent = 'Thử lại';
+      }
+    } finally {
+      state.set('isLoadingMore', false);
+    }
+  }
+
+  _renderDatasetGrid(allImages, newBatch, isInitial) {
+    const gridEl = document.getElementById('datasetGrid5');
+    if (!gridEl) return;
+
+    if (isInitial) {
+      gridEl.innerHTML = '';
+    }
+
+    const itemsToAppend = isInitial ? allImages : newBatch;
+    const activeImage = state.get('activeImage');
+
+    itemsToAppend.forEach((imgItem) => {
+      const card = document.createElement('div');
+      card.className = 'gallery-item-card';
+      card.setAttribute('data-id', imgItem.id);
+      card.setAttribute('data-url', imgItem.url);
+
+      if (activeImage && (activeImage.id === imgItem.id || activeImage.id === imgItem.filename)) {
+        card.classList.add('active');
+      }
+
+      card.innerHTML = `
+        <div class="gallery-thumb-wrap">
+          <img class="gallery-thumb-img" src="${imgItem.url}" alt="${imgItem.title}" loading="lazy" />
+        </div>
+        <div class="gallery-item-info">
+          <span class="gallery-item-title" title="${imgItem.filename}">${imgItem.filename}</span>
+          <span class="gallery-item-tag">RDD</span>
+        </div>
+      `;
+
+      card.addEventListener('click', () => {
+        this._selectDatasetImage(imgItem);
+      });
+
+      gridEl.appendChild(card);
+    });
+  }
+
+  _selectDatasetImage(imgItem) {
+    document.querySelectorAll('.gallery-item-card').forEach((card) => {
+      const isMatch = card.getAttribute('data-id') === imgItem.id;
+      card.classList.toggle('active', isMatch);
+    });
+
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      state.set('activeImage', {
+        id: imgItem.id,
+        file: imgItem.filename,
+        url: imgItem.url,
+        width: img.naturalWidth,
+        height: img.naturalHeight,
+        element: img,
+      });
+
+      this._updateStageMeta(imgItem.filename, `${img.naturalWidth} x ${img.naturalHeight}px`);
+      this._triggerInference();
+    };
+    img.src = imgItem.url;
+  }
+
+  _handleFileUpload(file) {
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload a valid image file (JPEG, PNG).');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        state.set('activeImage', {
+          id: file.name,
+          file: file.name,
+          url: e.target.result,
+          width: img.naturalWidth,
+          height: img.naturalHeight,
+          element: img,
+          base64: e.target.result,
+        });
+
+        // De-select gallery items
+        document.querySelectorAll('.gallery-item-card').forEach((c) => c.classList.remove('active'));
+
+        this._updateStageMeta(file.name, `${img.naturalWidth} x ${img.naturalHeight}px`);
+        this._showToast(`Loaded ${file.name}`);
+        this._triggerInference();
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async _triggerInference() {
+    const activeImage = state.get('activeImage');
+    if (!activeImage) return;
+
+    state.set('isDetecting', true);
+
+    const model = state.get('selectedModel');
+    const conf = state.get('confidenceThreshold');
+    const iou = state.get('iouThreshold');
+
+    try {
+      const result = await api.detect({
+        model,
+        conf,
+        iou,
+        sampleId: activeImage.file || activeImage.id,
+        imageBase64: activeImage.base64,
+      });
+
+      if (!result) return; // Aborted by newer request
+
+      state.set('detections', result.detections || []);
+      state.set('metrics', {
+        latency_ms: result.latency_ms || 0,
+        count: result.count || 0,
+        speed: result.speed || { preprocess_ms: 0, inference_ms: 0, postprocess_ms: 0 },
+      });
+    } catch (err) {
+      console.error('Detection request failed:', err);
+    } finally {
+      state.set('isDetecting', false);
+    }
+  }
+
   _bindStateSubscribers() {
     // Model change
     state.subscribe('selectedModel', (modelId) => {
-      document.querySelectorAll('.model-tab-btn').forEach((btn) => {
+      document.querySelectorAll('.sidebar-model-btn').forEach((btn) => {
         const isSelected = btn.getAttribute('data-model') === modelId;
         btn.classList.toggle('active', isSelected);
         btn.setAttribute('aria-selected', isSelected ? 'true' : 'false');
@@ -245,138 +463,9 @@ class App {
     });
   }
 
-  _renderSampleCarousel(samples) {
-    const carouselEl = document.getElementById('sampleCarousel');
-    if (!carouselEl || !samples) return;
-
-    carouselEl.innerHTML = samples
-      .map(
-        (s) => `
-        <button class="sample-thumb-btn" data-sample-id="${s.id}">
-          <img class="sample-thumb-img" src="${s.file}" alt="${s.title}" loading="lazy">
-          <div>
-            <span class="sample-thumb-title">${s.title}</span>
-            <span class="sample-thumb-tag">${s.primary_class}</span>
-          </div>
-        </button>
-      `
-      )
-      .join('');
-
-    carouselEl.querySelectorAll('.sample-thumb-btn').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const sampleId = btn.getAttribute('data-sample-id');
-        const sample = samples.find((x) => x.id === sampleId);
-        if (sample) this._selectSample(sample);
-      });
-    });
-  }
-
-  _selectInitialSample() {
-    const samples = state.get('samples');
-    if (samples && samples.length > 0) {
-      this._selectSample(samples[0]);
-    }
-  }
-
-  _selectSample(sample) {
-    document.querySelectorAll('.sample-thumb-btn').forEach((btn) => {
-      btn.classList.toggle('active', btn.getAttribute('data-sample-id') === sample.id);
-    });
-
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload = () => {
-      state.set('activeImage', {
-        id: sample.id,
-        file: sample.file,
-        url: img.src,
-        width: img.naturalWidth,
-        height: img.naturalHeight,
-        element: img,
-      });
-
-      this._updateStageMeta(sample.title, `${img.naturalWidth} x ${img.naturalHeight}px`);
-      this._triggerInference();
-    };
-    img.src = sample.file;
-  }
-
-  _handleFileUpload(file) {
-    if (!file.type.startsWith('image/')) {
-      alert('Please upload a valid image file (JPEG, PNG).');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        state.set('activeImage', {
-          id: null,
-          file: null,
-          url: e.target.result,
-          width: img.naturalWidth,
-          height: img.naturalHeight,
-          element: img,
-          base64: e.target.result,
-        });
-
-        // De-select sample thumbnails
-        document.querySelectorAll('.sample-thumb-btn').forEach((btn) => {
-          btn.classList.remove('active');
-        });
-
-        this._updateStageMeta(file.name, `${img.naturalWidth} x ${img.naturalHeight}px`);
-        this._showToast(`Loaded ${file.name}`);
-        this._triggerInference();
-      };
-      img.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
-  }
-
-  async _triggerInference() {
-    const activeImage = state.get('activeImage');
-    if (!activeImage) return;
-
-    state.set('isDetecting', true);
-
-    const model = state.get('selectedModel');
-    const conf = state.get('confidenceThreshold');
-    const iou = state.get('iouThreshold');
-
-    try {
-      const result = await api.detect({
-        model,
-        conf,
-        iou,
-        sampleId: activeImage.id,
-        imageBase64: activeImage.base64,
-      });
-
-      if (!result) {
-        // Request was aborted due to newer incoming request
-        return;
-      }
-
-      state.set('detections', result.detections || []);
-      state.set('metrics', {
-        latency_ms: result.latency_ms || 0,
-        count: result.count || 0,
-        speed: result.speed || { preprocess_ms: 0, inference_ms: 0, postprocess_ms: 0 },
-      });
-    } catch (err) {
-      console.error('Detection request failed:', err);
-    } finally {
-      state.set('isDetecting', false);
-    }
-  }
-
   _updateTelemetry(dets) {
     const metrics = state.get('metrics');
 
-    // Update Counts & Latency
     const valDetectionsCount = document.getElementById('valDetectionsCount');
     const valTotalLatency = document.getElementById('valTotalLatency');
     const valInferenceTime = document.getElementById('valInferenceTime');
@@ -393,7 +482,7 @@ class App {
       valFps.textContent = fps;
     }
 
-    // Class Breakdown Counts
+    // Damage counts
     const counts = { D00: 0, D10: 0, D20: 0, D40: 0 };
     dets.forEach((d) => {
       if (counts[d.class_id] !== undefined) {
@@ -411,11 +500,11 @@ class App {
     if (countD20) countD20.textContent = counts.D20;
     if (countD40) countD40.textContent = counts.D40;
 
-    // Render Raw Detections List
+    // Raw boxes list
     const detsListEl = document.getElementById('rawDetectionsList');
     if (detsListEl) {
       if (dets.length === 0) {
-        detsListEl.innerHTML = `<span style="color: var(--color-on-dark-soft); font-size: 11px;">No damages detected at current confidence.</span>`;
+        detsListEl.innerHTML = `<span style="color: var(--color-on-dark-soft); font-size: 10px;">No damages detected at current confidence.</span>`;
       } else {
         detsListEl.innerHTML = dets
           .map((d) => {
