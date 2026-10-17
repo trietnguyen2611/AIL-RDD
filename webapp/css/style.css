@@ -457,8 +457,8 @@ h1, h2, h3, .display-serif {
 /* Upper Stage Card (Dark Product Surface) */
 .stage-card {
   flex: 1;
-  min-height: 380px;
-  max-height: calc(100vh - 275px);
+  min-height: 250px;
+  max-height: calc(100vh - 460px);
   background-color: var(--color-surface-dark);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-surface-dark-elevated);
@@ -754,42 +754,17 @@ canvas#detectionCanvas {
   color: var(--color-on-dark);
 }
 
-/* Raw Detections List */
-.detections-scroll {
-  max-height: 120px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  scrollbar-width: thin;
-}
-
-.detection-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 4px 8px;
-  background-color: var(--color-surface-dark-elevated);
-  border-radius: var(--radius-xs);
-  font-family: var(--font-mono);
-  font-size: 10px;
-}
-
-.detection-confidence {
-  color: var(--color-primary);
-  font-weight: 500;
-}
 
 /* Bottom Dataset Gallery Panel (5 items per row, vertical scroll) */
 .dataset-gallery-panel {
-  height: 235px;
+  height: 420px;
   flex-shrink: 0;
   background-color: var(--color-surface-card);
   border: 1px solid var(--color-hairline);
   border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
-  padding: 10px 14px;
+  padding: 14px 18px;
   box-shadow: var(--shadow-card);
   overflow: hidden;
 }
@@ -798,7 +773,7 @@ canvas#detectionCanvas {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 8px;
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--color-hairline);
   flex-shrink: 0;
 }
@@ -806,58 +781,59 @@ canvas#detectionCanvas {
 .gallery-title-group {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .gallery-title {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-ink);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .gallery-counter {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-muted);
 }
 
 .gallery-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .btn-load-more {
-  height: 28px;
-  padding: 0 10px;
-  font-size: 11px;
+  height: 30px;
+  padding: 0 14px;
+  font-size: 12px;
+  border-radius: var(--radius-sm);
 }
 
 /* 5-Column Vertical Scrolling Grid */
 .gallery-scroll-container {
   flex: 1;
   overflow-y: auto;
-  padding-top: 8px;
-  padding-bottom: 8px;
+  padding-top: 12px;
+  padding-bottom: 12px;
   scrollbar-width: thin;
 }
 
 .gallery-grid-5 {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 10px;
+  gap: 14px;
 }
 
 .gallery-item-card {
   background-color: var(--color-canvas);
   border: 1px solid var(--color-hairline);
-  border-radius: var(--radius-md);
-  padding: 6px;
+  border-radius: 8px;
+  padding: 10px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.18s ease;
   display: flex;
   flex-direction: column;
   text-align: left;
@@ -865,7 +841,8 @@ canvas#detectionCanvas {
 
 .gallery-item-card:hover {
   border-color: var(--color-primary);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(20, 20, 19, 0.08);
 }
 
 .gallery-item-card.active {
@@ -876,8 +853,8 @@ canvas#detectionCanvas {
 
 .gallery-thumb-wrap {
   width: 100%;
-  height: 72px;
-  border-radius: 4px;
+  height: 138px;
+  border-radius: 6px;
   overflow: hidden;
   background-color: var(--color-surface-soft);
   position: relative;
@@ -888,29 +865,37 @@ canvas#detectionCanvas {
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gallery-item-card:hover .gallery-thumb-img {
+  transform: scale(1.04);
 }
 
 .gallery-item-info {
-  margin-top: 4px;
+  margin-top: 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
 .gallery-item-title {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--color-ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 110px;
+  max-width: calc(100% - 44px);
 }
 
 .gallery-item-tag {
   font-family: var(--font-mono);
-  font-size: 9px;
+  font-size: 10px;
   color: var(--color-muted);
+  padding: 1px 5px;
+  border-radius: 3px;
+  background-color: var(--color-surface-soft);
 }
 
 /* Secondary Views: Benchmark & Taxonomy (Vertically Scrollable) */

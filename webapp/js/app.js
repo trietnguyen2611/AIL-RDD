@@ -56,10 +56,12 @@ class App {
 
     if (status.isLive) {
       statusDot?.classList.remove('offline');
-      if (statusText) statusText.textContent = `Live (${status.data.device.toUpperCase()})`;
+      const dev = (status.data?.device || '').toLowerCase();
+      const devLabel = dev.includes('cuda') || dev.includes('mps') ? 'GPU' : 'CPU';
+      if (statusText) statusText.textContent = devLabel;
     } else {
       statusDot?.classList.add('offline');
-      if (statusText) statusText.textContent = 'Standalone Mode';
+      if (statusText) statusText.textContent = 'CPU';
     }
 
     // Load models
@@ -500,25 +502,6 @@ class App {
     if (countD20) countD20.textContent = counts.D20;
     if (countD40) countD40.textContent = counts.D40;
 
-    // Raw boxes list
-    const detsListEl = document.getElementById('rawDetectionsList');
-    if (detsListEl) {
-      if (dets.length === 0) {
-        detsListEl.innerHTML = `<span style="color: var(--color-on-dark-soft); font-size: 10px;">No damages detected at current confidence.</span>`;
-      } else {
-        detsListEl.innerHTML = dets
-          .map((d) => {
-            const pct = Math.round(d.confidence * 100);
-            return `
-            <div class="detection-row">
-              <span>${d.class_id} · ${d.class_name}</span>
-              <span class="detection-confidence">${pct}%</span>
-            </div>
-          `;
-          })
-          .join('');
-      }
-    }
   }
 
   _updateStageMeta(title, dims) {
