@@ -1,0 +1,6 @@
+pyyaml
+ultralytics
+ipykernel
+numpy<2
+opencv-python<4.10
+contourpy<1.3
