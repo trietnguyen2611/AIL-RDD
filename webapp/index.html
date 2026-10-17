@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AIL-RDD · Road Damage Detection Studio</title>
+  <meta name="description" content="Warm-canvas editorial web application for Road Damage Detection (RDD2022) with real-time multi-model inference and benchmark inspection.">
+  
+  <!-- Typography Fallbacks & Google Fonts (Cormorant Garamond display serif, Inter humanist sans, JetBrains Mono) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Floating Navigation Header -->
+  <header class="floating-nav-wrapper">
+    <nav class="floating-nav" aria-label="Main Navigation">
+      <a href="#" class="brand-group">
+        <!-- Anthropic 4-spoke radial-spike glyph (Zero emojis) -->
+        <svg class="brand-glyph" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 2L13.8 8.8L20.6 7L15.8 12L20.6 17L13.8 15.2L12 22L10.2 15.2L3.4 17L8.2 12L3.4 7L10.2 8.8L12 2Z" />
+        </svg>
+        <span class="brand-text">AIL-RDD</span>
+        <span class="brand-tag">RDD2022</span>
+      </a>
+
+      <ul class="nav-links">
+        <li><a href="#studio" class="nav-link active">Studio</a></li>
+        <li><a href="#samples" class="nav-link">Samples</a></li>
+        <li><a href="#benchmark" class="nav-link">Benchmark</a></li>
+        <li><a href="#taxonomy" class="nav-link">Taxonomy</a></li>
+      </ul>
+
+      <div class="nav-status" id="backendStatusBadge" title="Engine operational status">
+        <span class="status-indicator" id="backendStatusDot"></span>
+        <span class="mono" id="backendStatusText" style="font-size: 11px;">Checking...</span>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <main>
+    <section class="hero-section container fade-reveal">
+      <div class="hero-pill">
+        <span class="pill-dot"></span>
+        <span>Neural Road Surface Intelligence</span>
+      </div>
+      <h1 class="hero-title">Evaluate road damage across neural architectures.</h1>
+      <p class="hero-subtitle">
+        Compare detection precision, latency, and parameter efficiency across YOLO11s, YOLOv10s, YOLO26n, and YOLOv8s on RDD2022 road imagery.
+      </p>
+
+      <!-- Floating Model Selector Switcher -->
+      <div class="model-switcher-band">
+        <div class="model-switcher-bar" role="tablist" aria-label="Model Selector">
+          <button class="model-tab-btn active" role="tab" aria-selected="true" data-model="yolo11s_best">
+            <span>YOLO11s</span>
+            <span class="model-tab-badge">81.5%</span>
+          </button>
+          <button class="model-tab-btn" role="tab" aria-selected="false" data-model="yolov10s_best">
+            <span>YOLOv10s</span>
+            <span class="model-tab-badge">77.3%</span>
+          </button>
+          <button class="model-tab-btn" role="tab" aria-selected="false" data-model="yolov26n_best">
+            <span>YOLO26n</span>
+            <span class="model-tab-badge">DGVG</span>
+          </button>
+          <button class="model-tab-btn" role="tab" aria-selected="false" data-model="yolov8s_best">
+            <span>YOLOv8s</span>
+            <span class="model-tab-badge">79.8%</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Detection Stage Section (Dark Product Surface) -->
+    <section id="studio" class="stage-section container fade-reveal">
+      <div class="product-stage-card">
+        <!-- Stage Top Bar -->
+        <div class="stage-header">
+          <div class="stage-title-group">
+            <span class="stage-chip">Viewport</span>
+            <span class="stage-meta" id="stageImageTitle">China_Drone_000040.jpg</span>
+            <span class="stage-meta" id="stageImageDims">800 x 600px</span>
+          </div>
+
+          <div class="stage-tools">
+            <button class="icon-btn active" id="btnToggleBoxes" title="Toggle Bounding Boxes" aria-label="Toggle Bounding Boxes">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <path d="M9 3v18M15 3v18M3 9h18M3 15h18" opacity="0.3" />
+              </svg>
+            </button>
+            <button class="icon-btn" id="btnResetView" title="Reset Zoom and Pan" aria-label="Reset View">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                <path d="M3 3v5h5" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Stage Body -->
+        <div class="stage-body">
+          <!-- Left: Canvas Viewport -->
+          <div class="viewport-area">
+            <div class="canvas-container" id="canvasContainer">
+              <canvas id="detectionCanvas"></canvas>
+
+              <div class="viewport-empty-state" id="viewportEmptyState">
+                <svg class="viewport-empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span class="viewport-empty-text">Select a test sample or drop road image here</span>
+              </div>
+
+              <!-- Loading spinner -->
+              <div class="stage-loading-overlay" id="stageLoadingOverlay">
+                <div class="spinner"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Telemetry & Inspector Sidebar -->
+          <aside class="telemetry-sidebar">
+            <!-- Latency & FPS block -->
+            <div class="telemetry-block">
+              <div class="telemetry-label">
+                <span>Inference Telemetry</span>
+                <span class="stage-chip" style="font-size: 10px; padding: 1px 5px;">Live</span>
+              </div>
+              <div class="telemetry-grid">
+                <div class="metric-card">
+                  <span class="metric-name">Detections</span>
+                  <div class="metric-val" id="valDetectionsCount">0</div>
+                </div>
+                <div class="metric-card">
+                  <span class="metric-name">Total Latency</span>
+                  <div class="metric-val"><span id="valTotalLatency">0</span><span class="metric-unit">ms</span></div>
+                </div>
+                <div class="metric-card">
+                  <span class="metric-name">Inference Time</span>
+                  <div class="metric-val" id="valInferenceTime" style="font-size: 15px;">0 ms</div>
+                </div>
+                <div class="metric-card">
+                  <span class="metric-name">Throughput</span>
+                  <div class="metric-val"><span id="valFps">0</span><span class="metric-unit">fps</span></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Damage Distribution by Class -->
+            <div class="telemetry-block">
+              <div class="telemetry-label">
+                <span>Damage Breakdown</span>
+                <span style="font-size: 10px; color: var(--color-on-dark-soft);">Click to isolate</span>
+              </div>
+
+              <div class="damage-list">
+                <div class="damage-item" data-class="D00" style="cursor: pointer;">
+                  <div class="damage-tag">
+                    <span class="damage-color-dot" style="background-color: var(--color-d00);"></span>
+                    <span class="damage-code">D00</span>
+                    <span class="damage-name">Longitudinal Crack</span>
+                  </div>
+                  <span class="damage-count" id="countD00">0</span>
+                </div>
+
+                <div class="damage-item" data-class="D10" style="cursor: pointer;">
+                  <div class="damage-tag">
+                    <span class="damage-color-dot" style="background-color: var(--color-d10);"></span>
+                    <span class="damage-code">D10</span>
+                    <span class="damage-name">Transverse Crack</span>
+                  </div>
+                  <span class="damage-count" id="countD10">0</span>
+                </div>
+
+                <div class="damage-item" data-class="D20" style="cursor: pointer;">
+                  <div class="damage-tag">
+                    <span class="damage-color-dot" style="background-color: var(--color-d20);"></span>
+                    <span class="damage-code">D20</span>
+                    <span class="damage-name">Alligator Crack</span>
+                  </div>
+                  <span class="damage-count" id="countD20">0</span>
+                </div>
+
+                <div class="damage-item" data-class="D40" style="cursor: pointer;">
+                  <div class="damage-tag">
+                    <span class="damage-color-dot" style="background-color: var(--color-d40);"></span>
+                    <span class="damage-code">D40</span>
+                    <span class="damage-name">Pothole</span>
+                  </div>
+                  <span class="damage-count" id="countD40">0</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Raw Bounding Boxes List -->
+            <div class="telemetry-block" style="flex: 1;">
+              <div class="telemetry-label">
+                <span>Detected Regions</span>
+                <span style="font-size: 10px; color: var(--color-on-dark-soft);">BBox Coordinates</span>
+              </div>
+              <div class="detections-scroll scroll-mask-y" id="rawDetectionsList">
+                <span style="color: var(--color-on-dark-soft); font-size: 11px;">No detections loaded.</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- Curated Sample Carousel Bar -->
+    <section id="samples" class="sample-bar-section container fade-reveal">
+      <div class="sample-bar-card">
+        <div class="sample-bar-header">
+          <span>Test Samples</span>
+        </div>
+        <div class="sample-carousel scroll-mask-x" id="sampleCarousel">
+          <!-- Dynamically populated sample thumbnail buttons -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Benchmark Comparison Matrix -->
+    <section id="benchmark" class="benchmark-section container fade-reveal">
+      <div class="section-head">
+        <span class="section-tag">Empirical Evaluation</span>
+        <h2 class="section-title">Architectural Performance Matrix</h2>
+        <p class="section-desc">
+          Evaluated under standardized conditions on the RDD2022 validation split. Select any card to activate model in the studio.
+        </p>
+      </div>
+
+      <!-- 4 Model Cards -->
+      <div class="models-grid" id="modelsCardsContainer">
+        <!-- Dynamically rendered by benchmark.js -->
+      </div>
+
+      <!-- Detailed Metrics Table -->
+      <div class="benchmark-table-card" id="benchmarkTableContainer">
+        <!-- Dynamically rendered by benchmark.js -->
+      </div>
+    </section>
+
+    <!-- Road Damage Taxonomy Reference -->
+    <section id="taxonomy" class="classes-section container fade-reveal">
+      <div class="section-head">
+        <span class="section-tag">Annotation Standard</span>
+        <h2 class="section-title">Road Surface Damage Taxonomy</h2>
+        <p class="section-desc">
+          Four primary distress classes formalized by the Global Road Damage Detection Challenge.
+        </p>
+      </div>
+
+      <div class="classes-grid">
+        <div class="class-card">
+          <div class="class-card-header">
+            <span class="class-color-badge" style="background-color: var(--color-d00);"></span>
+            <span class="class-code">D00</span>
+          </div>
+          <h3 class="class-name">Longitudinal Crack</h3>
+          <p class="class-desc">
+            Linear fissures extending parallel to the pavement centerline, typically caused by joint settlement or wheel path fatigue.
+          </p>
+        </div>
+
+        <div class="class-card">
+          <div class="class-card-header">
+            <span class="class-color-badge" style="background-color: var(--color-d10);"></span>
+            <span class="class-code">D10</span>
+          </div>
+          <h3 class="class-name">Transverse Crack</h3>
+          <p class="class-desc">
+            Cracks running perpendicular to the pavement traffic direction, typically caused by temperature fluctuations or subgrade shrinkage.
+          </p>
+        </div>
+
+        <div class="class-card">
+          <div class="class-card-header">
+            <span class="class-color-badge" style="background-color: var(--color-d20);"></span>
+            <span class="class-code">D20</span>
+          </div>
+          <h3 class="class-name">Alligator Crack</h3>
+          <p class="class-desc">
+            Interconnected pattern of polygon fissures resembling reptile skin, indicating structural failure in base support layers.
+          </p>
+        </div>
+
+        <div class="class-card">
+          <div class="class-card-header">
+            <span class="class-color-badge" style="background-color: var(--color-d40);"></span>
+            <span class="class-code">D40</span>
+          </div>
+          <h3 class="class-name">Pothole</h3>
+          <p class="class-desc">
+            Bowl-shaped pavement depressions caused by water intrusion into underlying aggregate followed by freeze-thaw cycles and heavy load impact.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Page Footer strictly matching DESIGN.md -->
+  <footer class="page-footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <svg class="brand-glyph" viewBox="0 0 24 24" style="fill: var(--color-on-dark);" aria-hidden="true">
+              <path d="M12 2L13.8 8.8L20.6 7L15.8 12L20.6 17L13.8 15.2L12 22L10.2 15.2L3.4 17L8.2 12L3.4 7L10.2 8.8L12 2Z" />
+            </svg>
+            <span class="brand-text">AIL-RDD</span>
+          </div>
+          <p style="font-size: 13px; color: var(--color-on-dark-soft); max-width: 380px; margin-top: 6px;">
+            High-efficiency neural inspection system for autonomous road distress detection and infrastructure assessment.
+          </p>
+        </div>
+
+        <div class="footer-links-row">
+          <a href="#studio" class="footer-link">Studio</a>
+          <a href="#samples" class="footer-link">Test Imagery</a>
+          <a href="#benchmark" class="footer-link">Architectures</a>
+          <a href="#taxonomy" class="footer-link">RDD Taxonomy</a>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>AIL-RDD Research Project &middot; Built with PyTorch &amp; Ultralytics</span>
+        <span class="mono">v1.0.0</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Floating Bottom Control Dock -->
+  <aside class="floating-dock-wrapper" aria-label="Control Dock">
+    <div class="floating-dock">
+      <!-- Confidence Threshold Slider -->
+      <div class="dock-group">
+        <span class="dock-label">Conf</span>
+        <div class="slider-control">
+          <input type="range" class="range-slider" id="confSlider" min="0.05" max="0.95" step="0.05" value="0.25">
+          <span class="slider-val" id="confSliderVal">0.25</span>
+        </div>
+      </div>
+
+      <div class="dock-divider"></div>
+
+      <!-- IoU Threshold Slider -->
+      <div class="dock-group">
+        <span class="dock-label">IoU</span>
+        <div class="slider-control">
+          <input type="range" class="range-slider" id="iouSlider" min="0.10" max="0.90" step="0.05" value="0.45">
+          <span class="slider-val" id="iouSliderVal">0.45</span>
+        </div>
+      </div>
+
+      <div class="dock-divider"></div>
+
+      <!-- Action Buttons -->
+      <div class="dock-group">
+        <button class="btn-secondary-dark btn-dock-pill" id="btnUpload" title="Upload custom road image">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+            <polyline points="17 8 12 3 7 8" />
+            <line x1="12" y1="3" x2="12" y2="15" />
+          </svg>
+          <span>Upload</span>
+        </button>
+
+        <button class="btn-primary btn-dock-pill" id="btnRunDetect" title="Run model inference">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="5 3 19 12 5 21 5 3" />
+          </svg>
+          <span>Detect</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Floating Toast Notification -->
+  <div class="floating-toast" id="floatingToast" role="status" aria-live="polite">
+    <span class="toast-dot"></span>
+    <span id="floatingToastMsg">Model updated</span>
+  </div>
+
+  <!-- Hidden File Input for Image Upload -->
+  <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp">
+
+  <!-- ES Modules Bootstrap -->
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

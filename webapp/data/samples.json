@@ -1,0 +1,710 @@
+[
+  {
+    "id": "sample_d00",
+    "title": "Longitudinal Crack",
+    "primary_class": "D00",
+    "file": "samples/sample_d00.jpg",
+    "width": 640,
+    "height": 640,
+    "predictions": {
+      "yolo11s_best": {
+        "latency_ms": 299.7,
+        "detections": [
+          {
+            "class_id": "D00",
+            "class_name": "Longitudinal Crack",
+            "confidence": 0.809,
+            "bbox": [
+              476.8,
+              539.4,
+              588.9,
+              639.4
+            ]
+          }
+        ]
+      },
+      "yolov10s_best": {
+        "latency_ms": 339.5,
+        "detections": [
+          {
+            "class_id": "D00",
+            "class_name": "Longitudinal Crack",
+            "confidence": 0.898,
+            "bbox": [
+              474.9,
+              539.1,
+              588.4,
+              639.2
+            ]
+          }
+        ]
+      },
+      "yolov26n_best": {
+        "latency_ms": 345.3,
+        "detections": [
+          {
+            "class_id": "D00",
+            "class_name": "Longitudinal Crack",
+            "confidence": 0.851,
+            "bbox": [
+              478.7,
+              542.2,
+              591.9,
+              640.0
+            ]
+          }
+        ]
+      },
+      "yolov8s_best": {
+        "latency_ms": 251.7,
+        "detections": [
+          {
+            "class_id": "D00",
+            "class_name": "Longitudinal Crack",
+            "confidence": 0.861,
+            "bbox": [
+              476.5,
+              537.7,
+              587.8,
+              639.1
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "sample_d10",
+    "title": "Transverse Crack",
+    "primary_class": "D10",
+    "file": "samples/sample_d10.jpg",
+    "width": 640,
+    "height": 640,
+    "predictions": {
+      "yolo11s_best": {
+        "latency_ms": 201.0,
+        "detections": [
+          {
+            "class_id": "D10",
+            "class_name": "Transverse Crack",
+            "confidence": 0.751,
+            "bbox": [
+              368.9,
+              537.5,
+              513.1,
+              561.8
+            ]
+          },
+          {
+            "class_id": "D10",
+            "class_name": "Transverse Crack",
+            "confidence": 0.702,
+            "bbox": [
+              4.9,
+              563.8,
+              116.1,
+              590.8
+            ]
+          },
+          {
+            "class_id": "D00",
+            "class_name": "Longitudinal Crack",
+            "confidence": 0.331,
+            "bbox": [
+              307.2,
+              409.9,
+              320.8,
+              451.8
+            ]
+          }
+        ]
+      },
+      "yolov10s_best": {
+        "latency_ms": 175.3,
+        "detections": [
+          {
+            "class_id": "D10",
+            "class_name": "Transverse Crack",
+            "confidence": 0.791,
+            "bbox": [
+              2.7,
+              563.7,
+              111.1,
+              591.5
+            ]
+          },
+          {
+            "class_id": "D10",
+            "class_name": "Transverse Crack",
+            "confidence": 0.72,
+            "bbox": [
+              365.5,
+              537.2,
+              511.9,
+              562.3
+            ]
+          },
+          {
+            "class_id": "D00",
+            "class_name": "Longitudinal Crack",
+            "confidence": 0.317,
+            "bbox": [
+              307.2,
+              411.2,
+              320.4,
+              450.1
+            ]
+          }
+        ]
+      },
+      "yolov26n_best": {
+        "latency_ms": 285.7,
+        "detections": [
+          {
+            "class_id": "D10",
+            "class_name": "Transverse Crack",
+            "confidence": 0.562,
+            "bbox": [
+              361.9,
+              538.1,
+              511.9,
+              562.5
+            ]
+          },
+          {
+            "class_id": "D10",
+            "class_name": "Transverse Crack",
+            "confidence": 0.451,
+            "bbox": [
+              5.6,
+              563.4,
+              112.4,
+              592.7
+            ]
+          }
+        ]
+      },
+      "yolov8s_best": {
+        "latency_ms": 180.5,
+        "detections": [
+          {
+            "class_id": "D10",
+            "class_name": "Transverse Crack",
+            "confidence": 0.785,
+            "bbox": [
+              7.6,
+              563.9,
+              111.7,
+              590.9
+            ]
+          },
+          {
+            "class_id": "D10",
+            "class_name": "Transverse Crack",
+            "confidence": 0.639,
+            "bbox": [
+              365.5,
+              538.3,
+              525.1,
+              561.4
+            ]
+          },
+          {
+            "class_id": "D00",
+            "class_name": "Longitudinal Crack",
+            "confidence": 0.415,
+            "bbox": [
+              307.5,
+              411.4,
+              320.6,
+              448.7
+            ]
+          },
+          {
+            "class_id": "D20",
+            "class_name": "Alligator Crack",
+            "confidence": 0.182,
+            "bbox": [
+              237.8,
+              379.5,
+              267.8,
+              409.2
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "sample_d20",
+    "title": "Alligator Crack",
+    "primary_class": "D20",
+    "file": "samples/sample_d20.jpg",
+    "width": 720,
+    "height": 720,
+    "predictions": {
+      "yolo11s_best": {
+        "latency_ms": 199.5,
+        "detections": [
+          {
+            "class_id": "D20",
+            "class_name": "Alligator Crack",
+            "confidence": 0.732,
+            "bbox": [
+              164.8,
+              540.8,
+              711.8,
+              715.4
+            ]
+          }
+        ]
+      },
+      "yolov10s_best": {
+        "latency_ms": 176.0,
+        "detections": [
+          {
+            "class_id": "D20",
+            "class_name": "Alligator Crack",
+            "confidence": 0.74,
+            "bbox": [
+              201.0,
+              542.3,
+              711.9,
+              716.9
+            ]
+          },
+          {
+            "class_id": "D00",
+            "class_name": "Longitudinal Crack",
+            "confidence": 0.283,
+            "bbox": [
+              506.2,
+              519.1,
+              720.0,
+              673.3
+            ]
+          }
+        ]
+      },
+      "yolov26n_best": {
+        "latency_ms": 277.5,
+        "detections": [
+          {
+            "class_id": "D20",
+            "class_name": "Alligator Crack",
+            "confidence": 0.691,
+            "bbox": [
+              176.9,
+              544.7,
+              695.0,
+              715.9
+            ]
+          }
+        ]
+      },
+      "yolov8s_best": {
+        "latency_ms": 185.1,
+        "detections": [
+          {
+            "class_id": "D20",
+            "class_name": "Alligator Crack",
+            "confidence": 0.739,
+            "bbox": [
+              209.2,
+              550.8,
+              709.5,
+              713.6
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "sample_d40",
+    "title": "Pothole",
+    "primary_class": "D40",
+    "file": "samples/sample_d40.jpg",
+    "width": 720,
+    "height": 720,
+    "predictions": {
+      "yolo11s_best": {
+        "latency_ms": 196.9,
+        "detections": [
+          {
+            "class_id": "D40",
+            "class_name": "Pothole",
+            "confidence": 0.573,
+            "bbox": [
+              1.3,
+              425.6,
+              424.7,
+              715.3
+            ]
+          },
+          {
+            "class_id": "D00",
+            "class_name": "Longitudinal Crack",
+            "confidence": 0.352,
+            "bbox": [
+              464.8,
+              495.0,
+              574.7,
+              637.1
+            ]
+          }
+        ]
+      },
+      "yolov10s_best": {
+        "latency_ms": 178.9,
+        "detections": [
+          {
+            "class_id": "D40",
+            "class_name": "Pothole",
+            "confidence": 0.526,
+            "bbox": [
+              1.2,
+              433.5,
+              428.0,
+              719.2
+            ]
+          },
+          {
+            "class_id": "D00",
+            "class_name": "Longitudinal Crack",
+            "confidence": 0.205,
+            "bbox": [
+              481.0,
+              514.6,
+              576.4,
+              639.0
+            ]
+          }
+        ]
+      },
+      "yolov26n_best": {
+        "latency_ms": 276.7,
+        "detections": [
+          {
+            "class_id": "D40",
+            "class_name": "Pothole",
+            "confidence": 0.268,
+            "bbox": [
+              0.3,
+              424.0,
+              417.1,
+              712.4
+            ]
+          },
+          {
+            "class_id": "D00",
+            "class_name": "Longitudinal Crack",
+            "confidence": 0.215,
+            "bbox": [
+              337.3,
+              451.1,
+              431.3,
+              637.1
+            ]
+          },
+          {
+            "class_id": "D40",
+            "class_name": "Pothole",
+            "confidence": 0.184,
+            "bbox": [
+              3.5,
+              433.8,
+              302.1,
+              720.0
+            ]
+          }
+        ]
+      },
+      "yolov8s_best": {
+        "latency_ms": 184.0,
+        "detections": [
+          {
+            "class_id": "D40",
+            "class_name": "Pothole",
+            "confidence": 0.419,
+            "bbox": [
+              0.0,
+              429.0,
+              421.8,
+              716.9
+            ]
+          },
+          {
+            "class_id": "D00",
+            "class_name": "Longitudinal Crack",
+            "confidence": 0.277,
+            "bbox": [
+              479.1,
+              501.3,
+              574.1,
+              636.1
+            ]
+          },
+          {
+            "class_id": "D00",
+            "class_name": "Longitudinal Crack",
+            "confidence": 0.151,
+            "bbox": [
+              416.0,
+              448.8,
+              449.6,
+              631.7
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "sample_multi",
+    "title": "Multiple Defects",
+    "primary_class": "Multi",
+    "file": "samples/sample_multi.jpg",
+    "width": 512,
+    "height": 512,
+    "predictions": {
+      "yolo11s_best": {
+        "latency_ms": 194.6,
+        "detections": [
+          {
+            "class_id": "D00",
+            "class_name": "Longitudinal Crack",
+            "confidence": 0.731,
+            "bbox": [
+              80.8,
+              142.6,
+              109.4,
+              239.3
+            ]
+          },
+          {
+            "class_id": "D10",
+            "class_name": "Transverse Crack",
+            "confidence": 0.458,
+            "bbox": [
+              25.6,
+              425.3,
+              152.2,
+              452.3
+            ]
+          },
+          {
+            "class_id": "D10",
+            "class_name": "Transverse Crack",
+            "confidence": 0.262,
+            "bbox": [
+              51.3,
+              424.1,
+              154.3,
+              449.8
+            ]
+          },
+          {
+            "class_id": "D00",
+            "class_name": "Longitudinal Crack",
+            "confidence": 0.17,
+            "bbox": [
+              0.0,
+              0.5,
+              17.9,
+              31.5
+            ]
+          }
+        ]
+      },
+      "yolov10s_best": {
+        "latency_ms": 176.2,
+        "detections": [
+          {
+            "class_id": "D00",
+            "class_name": "Longitudinal Crack",
+            "confidence": 0.681,
+            "bbox": [
+              82.3,
+              145.0,
+              108.5,
+              237.3
+            ]
+          },
+          {
+            "class_id": "D10",
+            "class_name": "Transverse Crack",
+            "confidence": 0.351,
+            "bbox": [
+              52.4,
+              423.8,
+              152.9,
+              450.6
+            ]
+          },
+          {
+            "class_id": "D10",
+            "class_name": "Transverse Crack",
+            "confidence": 0.201,
+            "bbox": [
+              35.8,
+              425.4,
+              151.7,
+              455.0
+            ]
+          }
+        ]
+      },
+      "yolov26n_best": {
+        "latency_ms": 276.1,
+        "detections": [
+          {
+            "class_id": "D00",
+            "class_name": "Longitudinal Crack",
+            "confidence": 0.576,
+            "bbox": [
+              83.1,
+              142.7,
+              108.6,
+              240.4
+            ]
+          },
+          {
+            "class_id": "D10",
+            "class_name": "Transverse Crack",
+            "confidence": 0.232,
+            "bbox": [
+              45.2,
+              425.7,
+              150.8,
+              449.9
+            ]
+          },
+          {
+            "class_id": "D10",
+            "class_name": "Transverse Crack",
+            "confidence": 0.153,
+            "bbox": [
+              0.5,
+              324.1,
+              52.4,
+              361.5
+            ]
+          }
+        ]
+      },
+      "yolov8s_best": {
+        "latency_ms": 183.7,
+        "detections": [
+          {
+            "class_id": "D00",
+            "class_name": "Longitudinal Crack",
+            "confidence": 0.704,
+            "bbox": [
+              82.5,
+              145.4,
+              108.7,
+              237.7
+            ]
+          },
+          {
+            "class_id": "D10",
+            "class_name": "Transverse Crack",
+            "confidence": 0.412,
+            "bbox": [
+              35.0,
+              426.5,
+              146.2,
+              451.5
+            ]
+          }
+        ]
+      }
+    }
+  },
+  {
+    "id": "sample_drone",
+    "title": "Aerial Drone View",
+    "primary_class": "D10",
+    "file": "samples/sample_drone.jpg",
+    "width": 512,
+    "height": 512,
+    "predictions": {
+      "yolo11s_best": {
+        "latency_ms": 204.0,
+        "detections": [
+          {
+            "class_id": "D10",
+            "class_name": "Transverse Crack",
+            "confidence": 0.726,
+            "bbox": [
+              61.3,
+              338.0,
+              369.8,
+              452.0
+            ]
+          }
+        ]
+      },
+      "yolov10s_best": {
+        "latency_ms": 176.3,
+        "detections": [
+          {
+            "class_id": "D10",
+            "class_name": "Transverse Crack",
+            "confidence": 0.656,
+            "bbox": [
+              67.9,
+              340.4,
+              376.3,
+              450.8
+            ]
+          }
+        ]
+      },
+      "yolov26n_best": {
+        "latency_ms": 272.2,
+        "detections": [
+          {
+            "class_id": "D10",
+            "class_name": "Transverse Crack",
+            "confidence": 0.592,
+            "bbox": [
+              21.3,
+              337.2,
+              376.8,
+              451.8
+            ]
+          },
+          {
+            "class_id": "D00",
+            "class_name": "Longitudinal Crack",
+            "confidence": 0.268,
+            "bbox": [
+              49.5,
+              332.7,
+              378.9,
+              451.9
+            ]
+          }
+        ]
+      },
+      "yolov8s_best": {
+        "latency_ms": 182.1,
+        "detections": [
+          {
+            "class_id": "D10",
+            "class_name": "Transverse Crack",
+            "confidence": 0.605,
+            "bbox": [
+              70.6,
+              342.6,
+              372.1,
+              451.6
+            ]
+          }
+        ]
+      }
+    }
+  }
+]

@@ -1,0 +1,150 @@
+[
+  {
+    "model_name": "yolo11s_best",
+    "filename": "yolo11s_best.pt",
+    "params_m": 9.43,
+    "gflops": 21.67,
+    "size_mb": 18.29,
+    "map50": 81.49,
+    "map50_95": 55.82,
+    "precision": 80.89,
+    "recall": 74.62,
+    "ap50_per_class": {
+      "D00": 80.34,
+      "D10": 77.8,
+      "D20": 68.34,
+      "D40": 99.5
+    },
+    "speed_per_class": {
+      "D00": {
+        "latency_ms": 179.12,
+        "fps": 5.6
+      },
+      "D10": {
+        "latency_ms": 271.39,
+        "fps": 3.7
+      },
+      "D20": {
+        "latency_ms": 306.84,
+        "fps": 3.3
+      },
+      "D40": {
+        "latency_ms": 266.77,
+        "fps": 3.7
+      }
+    },
+    "avg_latency_ms": 271.9,
+    "avg_fps": 3.7
+  },
+  {
+    "model_name": "yolov10s_best",
+    "filename": "yolov10s_best.pt",
+    "params_m": 8.07,
+    "gflops": 24.9,
+    "size_mb": 15.76,
+    "map50": 77.26,
+    "map50_95": 49.38,
+    "precision": 76.63,
+    "recall": 70.06,
+    "ap50_per_class": {
+      "D00": 74.11,
+      "D10": 79.77,
+      "D20": 55.65,
+      "D40": 99.5
+    },
+    "speed_per_class": {
+      "D00": {
+        "latency_ms": 229.03,
+        "fps": 4.4
+      },
+      "D10": {
+        "latency_ms": 236.16,
+        "fps": 4.2
+      },
+      "D20": {
+        "latency_ms": 211.24,
+        "fps": 4.7
+      },
+      "D40": {
+        "latency_ms": 219.78,
+        "fps": 4.6
+      }
+    },
+    "avg_latency_ms": 303.1,
+    "avg_fps": 3.3
+  },
+  {
+    "model_name": "yolov26n_best",
+    "filename": "yolov26n_best.pt",
+    "params_m": 1.89,
+    "gflops": 4.36,
+    "size_mb": 3.83,
+    "map50": 63.49,
+    "map50_95": 39.55,
+    "precision": 66.05,
+    "recall": 62.22,
+    "ap50_per_class": {
+      "D00": 68.82,
+      "D10": 62.06,
+      "D20": 23.58,
+      "D40": 99.5
+    },
+    "speed_per_class": {
+      "D00": {
+        "latency_ms": 367.62,
+        "fps": 2.7
+      },
+      "D10": {
+        "latency_ms": 349.17,
+        "fps": 2.9
+      },
+      "D20": {
+        "latency_ms": 338.95,
+        "fps": 3.0
+      },
+      "D40": {
+        "latency_ms": 313.22,
+        "fps": 3.2
+      }
+    },
+    "avg_latency_ms": 304.9,
+    "avg_fps": 3.3
+  },
+  {
+    "model_name": "yolov8s_best",
+    "filename": "yolov8s_best.pt",
+    "params_m": 11.14,
+    "gflops": 28.65,
+    "size_mb": 21.48,
+    "map50": 79.79,
+    "map50_95": 50.38,
+    "precision": 70.52,
+    "recall": 68.93,
+    "ap50_per_class": {
+      "D00": 75.61,
+      "D10": 80.57,
+      "D20": 63.46,
+      "D40": 99.5
+    },
+    "speed_per_class": {
+      "D00": {
+        "latency_ms": 249.26,
+        "fps": 4.0
+      },
+      "D10": {
+        "latency_ms": 265.48,
+        "fps": 3.8
+      },
+      "D20": {
+        "latency_ms": 235.98,
+        "fps": 4.2
+      },
+      "D40": {
+        "latency_ms": 217.66,
+        "fps": 4.6
+      }
+    },
+    "avg_latency_ms": 250.2,
+    "avg_fps": 4.0
+  }
+]
