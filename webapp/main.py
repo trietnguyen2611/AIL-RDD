@@ -1,18 +1,31 @@
 #!/usr/bin/env python3
+import os
+import sys
+from pathlib import Path
+
+# Auto-switch to project virtualenv if invoked via system Python
+_SCRIPT_DIR = Path(__file__).resolve().parent
+_PROJECT_ROOT = _SCRIPT_DIR.parent
+_VENV_PYTHON = _PROJECT_ROOT / ".venv" / "bin" / "python"
+if _VENV_PYTHON.exists() and Path(sys.executable).resolve() != _VENV_PYTHON.resolve():
+    if os.environ.get("_AIL_RDD_VENV_EXEC") != "1":
+        os.environ["_AIL_RDD_VENV_EXEC"] = "1"
+        try:
+            os.execv(str(_VENV_PYTHON), [str(_VENV_PYTHON)] + sys.argv)
+        except Exception:
+            pass
+
 import base64
 import io
 import json
 import mimetypes
-import os
-import sys
 import time
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
-from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parent
+SCRIPT_DIR = _SCRIPT_DIR
+PROJECT_ROOT = _PROJECT_ROOT
 WEBAPP_DIR = SCRIPT_DIR
 DATASET_DIR = (PROJECT_ROOT / "dataset" / "test" / "images").resolve()
 
@@ -181,9 +194,28 @@ try:
         setattr(tasks, cls.__name__, cls)
         setattr(modules, cls.__name__, cls)
 
+    if hasattr(torch.serialization, "add_safe_globals"):
+        try:
+            torch.serialization.add_safe_globals(p26_classes)
+        except Exception:
+            pass
+
 except Exception as err:
     sys.stderr.write(f"Inference engine notice: {err}\n")
 
+
+MODEL_ALIASES = {
+    "yolo11s": "yolo11s_best",
+    "yolov11s": "yolo11s_best",
+    "yolo11s_best": "yolo11s_best",
+    "yolov10s": "yolov10s_best",
+    "yolov10s_best": "yolov10s_best",
+    "yolov26n": "yolov26n_best",
+    "yolo26n": "yolov26n_best",
+    "yolov26n_best": "yolov26n_best",
+    "yolov8s": "yolov8s_best",
+    "yolov8s_best": "yolov8s_best",
+}
 
 ALLOWED_MODELS = {
     "yolo11s_best",
@@ -199,18 +231,30 @@ def get_model(model_name: str):
     if not ULTRALYTICS_AVAILABLE:
         return None
 
-    if model_name not in ALLOWED_MODELS:
+    canonical_name = MODEL_ALIASES.get(model_name, model_name)
+    if canonical_name not in ALLOWED_MODELS:
         sys.stderr.write(f"Rejected unallowed model request: {model_name}\n")
         return None
 
-    if model_name in MODEL_CACHE:
-        return MODEL_CACHE[model_name]
+    if canonical_name in MODEL_CACHE:
+        return MODEL_CACHE[canonical_name]
 
-    # Resolve weight path safely
+    # Resolve weight path safely across known naming conventions
     candidates = [
+        (PROJECT_ROOT / "model" / f"{canonical_name}.pt").resolve(),
         (PROJECT_ROOT / "model" / f"{model_name}.pt").resolve(),
+        (WEBAPP_DIR / "model" / f"{canonical_name}.pt").resolve(),
         (WEBAPP_DIR / "model" / f"{model_name}.pt").resolve(),
     ]
+
+    if "yolov26" in canonical_name:
+        candidates.insert(0, (PROJECT_ROOT / "model" / "yolov26n (Ours).pt").resolve())
+    elif "yolo11" in canonical_name:
+        candidates.insert(1, (PROJECT_ROOT / "model" / "yolov11s.pt").resolve())
+    elif "yolov10" in canonical_name:
+        candidates.insert(1, (PROJECT_ROOT / "model" / "yolov10s.pt").resolve())
+    elif "yolov8" in canonical_name:
+        candidates.insert(1, (PROJECT_ROOT / "model" / "yolov8s.pt").resolve())
 
     target_path = None
     for c in candidates:
@@ -219,11 +263,12 @@ def get_model(model_name: str):
             break
 
     if not target_path:
+        sys.stderr.write(f"Model file not found for: {model_name} (canonical: {canonical_name})\n")
         return None
 
     try:
         model = YOLO(str(target_path))
-        MODEL_CACHE[model_name] = model
+        MODEL_CACHE[canonical_name] = model
         return model
     except Exception as e:
         sys.stderr.write(f"Failed to load model {model_name}: {e}\n")
@@ -406,8 +451,9 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 raw_sample = data.get("sample_id")
                 if raw_sample and isinstance(raw_sample, str):
                     sample_id = raw_sample
-                if data.get("image_base64"):
-                    b64_str = data["image_base64"]
+                b64_val = data.get("image_base64") or data.get("image")
+                if b64_val:
+                    b64_str = str(b64_val)
                     if "," in b64_str:
                         b64_str = b64_str.split(",", 1)[1]
                     image_bytes = base64.b64decode(b64_str)
@@ -436,10 +482,12 @@ class RequestHandler(SimpleHTTPRequestHandler):
                 self.send_json({"error": f"Multipart parsing error: {e}"}, HTTPStatus.BAD_REQUEST)
                 return
 
-        # Model allowlist validation
-        if model_name not in ALLOWED_MODELS:
+        # Model allowlist validation with alias normalization
+        canonical_model = MODEL_ALIASES.get(model_name, model_name)
+        if canonical_model not in ALLOWED_MODELS:
             self.send_json({"error": f"Unrecognized or forbidden model: {model_name}"}, HTTPStatus.BAD_REQUEST)
             return
+        model_name = canonical_model
 
         # Safe sample_id handling (resolves from webapp/samples or dataset directory)
         if not image_bytes and sample_id:
@@ -570,9 +618,32 @@ class RequestHandler(SimpleHTTPRequestHandler):
         self.wfile.write(body)
 
 
-def run_server(port: int = 8000):
-    server_address = ("", port)
-    httpd = ThreadingHTTPServer(server_address, RequestHandler)
+class ReusableThreadingHTTPServer(ThreadingHTTPServer):
+    allow_reuse_address = True
+    daemon_threads = True
+
+
+def run_server(preferred_port: int = 8000):
+    port = preferred_port
+    httpd = None
+    max_retries = 20
+
+    for attempt in range(max_retries):
+        try:
+            server_address = ("", port)
+            httpd = ReusableThreadingHTTPServer(server_address, RequestHandler)
+            break
+        except OSError as e:
+            if e.errno in (48, 98):  # 48 on macOS (EADDRINUSE), 98 on Linux
+                sys.stdout.write(f"[Notice] Port {port} is in use. Trying port {port + 1}...\n")
+                port += 1
+            else:
+                raise e
+
+    if httpd is None:
+        sys.stderr.write("Error: Could not bind to any open port.\n")
+        sys.exit(1)
+
     sys.stdout.write(f"AIL-RDD web application available at http://localhost:{port}\n")
     sys.stdout.write(f"Inference device: {DEVICE} (Torch: {TORCH_AVAILABLE}, Ultralytics: {ULTRALYTICS_AVAILABLE})\n")
     sys.stdout.flush()
@@ -584,7 +655,8 @@ def run_server(port: int = 8000):
 
 
 if __name__ == "__main__":
-    port = 8000
+    env_port = os.environ.get("PORT")
+    port = int(env_port) if env_port and env_port.isdigit() else 8000
     if len(sys.argv) > 1:
         try:
             port = int(sys.argv[1])
