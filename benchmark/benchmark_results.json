@@ -17,24 +17,24 @@
     },
     "speed_per_class": {
       "D00": {
-        "latency_ms": 179.12,
-        "fps": 5.6
+        "latency_ms": 181.96,
+        "fps": 5.5
       },
       "D10": {
-        "latency_ms": 271.39,
-        "fps": 3.7
+        "latency_ms": 209.85,
+        "fps": 4.8
       },
       "D20": {
-        "latency_ms": 306.84,
-        "fps": 3.3
+        "latency_ms": 247.48,
+        "fps": 4.0
       },
       "D40": {
-        "latency_ms": 266.77,
-        "fps": 3.7
+        "latency_ms": 260.85,
+        "fps": 3.8
       }
     },
-    "avg_latency_ms": 271.9,
-    "avg_fps": 3.7
+    "avg_latency_ms": 288.2,
+    "avg_fps": 3.5
   },
   {
     "model_name": "yolov10s_best",
@@ -54,24 +54,24 @@
     },
     "speed_per_class": {
       "D00": {
-        "latency_ms": 229.03,
-        "fps": 4.4
+        "latency_ms": 159.82,
+        "fps": 6.3
       },
       "D10": {
-        "latency_ms": 236.16,
-        "fps": 4.2
+        "latency_ms": 168.69,
+        "fps": 5.9
       },
       "D20": {
-        "latency_ms": 211.24,
-        "fps": 4.7
+        "latency_ms": 180.67,
+        "fps": 5.5
       },
       "D40": {
-        "latency_ms": 219.78,
-        "fps": 4.6
+        "latency_ms": 189.23,
+        "fps": 5.3
       }
     },
-    "avg_latency_ms": 303.1,
-    "avg_fps": 3.3
+    "avg_latency_ms": 222.3,
+    "avg_fps": 4.5
   },
   {
     "model_name": "yolov26n_best",
@@ -91,24 +91,24 @@
     },
     "speed_per_class": {
       "D00": {
-        "latency_ms": 367.62,
-        "fps": 2.7
+        "latency_ms": 256.99,
+        "fps": 3.9
       },
       "D10": {
-        "latency_ms": 349.17,
-        "fps": 2.9
+        "latency_ms": 259.55,
+        "fps": 3.9
       },
       "D20": {
-        "latency_ms": 338.95,
-        "fps": 3.0
+        "latency_ms": 322.1,
+        "fps": 3.1
       },
       "D40": {
-        "latency_ms": 313.22,
+        "latency_ms": 315.35,
         "fps": 3.2
       }
     },
-    "avg_latency_ms": 304.9,
-    "avg_fps": 3.3
+    "avg_latency_ms": 272.8,
+    "avg_fps": 3.7
   },
   {
     "model_name": "yolov8s_best",
@@ -128,23 +128,23 @@
     },
     "speed_per_class": {
       "D00": {
-        "latency_ms": 249.26,
-        "fps": 4.0
+        "latency_ms": 172.63,
+        "fps": 5.8
       },
       "D10": {
-        "latency_ms": 265.48,
-        "fps": 3.8
+        "latency_ms": 179.6,
+        "fps": 5.6
       },
       "D20": {
-        "latency_ms": 235.98,
-        "fps": 4.2
+        "latency_ms": 196.3,
+        "fps": 5.1
       },
       "D40": {
-        "latency_ms": 217.66,
-        "fps": 4.6
+        "latency_ms": 188.25,
+        "fps": 5.3
       }
     },
-    "avg_latency_ms": 250.2,
-    "avg_fps": 4.0
+    "avg_latency_ms": 253.4,
+    "avg_fps": 3.9
   }
 ]

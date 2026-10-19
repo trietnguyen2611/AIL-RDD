@@ -30,6 +30,7 @@ venv/
 .venv/
 env/
 ENV/
+fig/
 
 # Model weights & training outputs
 *.pt
