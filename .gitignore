@@ -42,3 +42,4 @@ wandb/
 .agents/
 .vscode/
 .ruff_cache/
+latex/
